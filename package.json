@@ -1,0 +1,24 @@
+{
+  "name": "ooni-report",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "js-yaml": "^3.4.2",
+    "tar.gz": "^1.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alemela/ooni-report.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alemela/ooni-report/issues"
+  },
+  "homepage": "https://github.com/alemela/ooni-report#readme"
+}
