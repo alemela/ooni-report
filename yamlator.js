@@ -33,11 +33,29 @@ var extractArchive = function (archive, cb) { //XXX
 }
 
 
-var digestYamlArchived = function (path) {
+var digestYamlArchived = function (path, cb) {
     extractArchive(path, function (p) {
         try {
-            var doc = yaml.safeLoadAll(fs.readFileSync(p, 'utf8'), function (doc) {
-                console.log(doc);
+            var rl = require('readline').createInterface({
+              input: fs.createReadStream(p),
+              terminal: false
+            });
+            var chunk = "";
+     
+            rl.on("line", function (line) {
+                if (line.indexOf('...') < 0) //se no
+                    chunk+=line+"\n";
+                if (line.indexOf('...') >= 0) { //se sì
+                    chunk+=line;
+                    var doc = yaml.safeLoadAll(chunk, function (doc) {
+                        cb(doc);
+                    });
+                    chunk="";
+                }
+            });
+
+            rl.on("close", function (c) {
+                fs.unlinkSync(p);
             });
         } catch (e) {
             console.log(e);
@@ -45,15 +63,30 @@ var digestYamlArchived = function (path) {
     });
 }
 
+var tcp_connectDigest = function (data) {
+    if (data.record_type === "entry" && data.connection !== undefined) {
+    var date = new Date(data.start_time*1000)
+    console.log(date.getFullYear() + " " + date.getMonth() + " " + date.getDate());
+    console.log(data.test_version);
+    console.log(data.connection);
+    console.log(data.input);
+    console.log(data.probe_cc);
+    console.log(data.start_time);
+    console.log("-------------------------");
+    }
+}
+
 searchDir(process.argv[2], function (d) {
     d.forEach(function (dir) {
         searchDir(process.argv[2]+"/"+dir, function (f) {
             f.forEach(function (file) {
                 if (file.indexOf('tcp_connect') > -1) {
-                //    digestYamlArchived(process.argv[2]+dir+"/"+file);
+                    digestYamlArchived(process.argv[2]+dir+"/"+file, function (d) {
+                        tcp_connectDigest(d);
+                    });
                 }
                 if (file.indexOf('dns_injection') > -1) {
-                    digestYamlArchived(process.argv[2]+dir+"/"+file);
+                    //digestYamlArchived(process.argv[2]+dir+"/"+file);
                 }
             });
         });
