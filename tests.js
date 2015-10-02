@@ -4,7 +4,6 @@ var yamlator = require('./yamlator.js');
 var mainArray = [];
 
 var save2disk = function (obj) {
-    //console.log(obj);
     obj.forEach(function (o) {
         fs.writeFileSync("output/" + o.key + ".json", JSON.stringify(o.json, null, 4));
     });
@@ -160,20 +159,20 @@ var http_invalid_request_lineDigest = function (data) {
             mainArray.push(o);
         }
 
-        if (json.tcpConnect === undefined) {
-            json.tcpConnect = {};
-            json.tcpConnect.versions = [];
-            json.tcpConnect.domains = [];
+        if (json.httpInvalidRequestLine === undefined) {
+            json.httpInvalidRequestLine = {};
+            json.httpInvalidRequestLine.versions = [];
+            json.httpInvalidRequestLine.domains = [];
         }
-        if (!indexOf(json.tcpConnect.versions, data.test_version))
-            json.tcpConnect.versions.push(data.test_version);
+        if (!indexOf(json.httpInvalidRequestLine.versions, data.test_version))
+            json.httpInvalidRequestLine.versions.push(data.test_version);
 
         var flag = 0;
-        for (var i = 0; i < json.tcpConnect.domains.length; i++) {
-            if (json.tcpConnect.domains[i].url === data.input) {
-                json.tcpConnect.domains[i].totalTests++;
-                if (data.connection === "success")
-                    json.tcpConnect.domains[i].totalSucceded++;
+        for (var i = 0; i < json.httpInvalidRequestLine.domains.length; i++) {
+            if (json.httpInvalidRequestLine.domains[i].url === data.input) {
+                json.httpInvalidRequestLine.domains[i].totalTests++;
+                if (data.tampered === true)
+                    json.httpInvalidRequestLine.domains[i].totalNotTamperd++;
                 flag = 1;
                 break;
             }
@@ -183,12 +182,12 @@ var http_invalid_request_lineDigest = function (data) {
             var obj = {};
             obj.url = data.input;
             obj.totalTests = 1;
-            if (data.connection === "success") {
-            obj.totalSucceded = 1;
+            if (data.tampered === false) {
+            obj.totalNotTamperedSucceded = 1;
             } else {
-            obj.totalSucceded = 0;
+            obj.totalNotTampered = 0;
             }
-            json.tcpConnect.domains.push(obj);
+            json.httpInvalidRequestLine.domains.push(obj);
         }
 
         mainArray.forEach(function (e) {
@@ -220,6 +219,16 @@ yamlator.searchDir(process.argv[2], function (d) {
                                 save2disk(mainArray);
                             }
                         });
+                    if (file.indexOf('http_invalid_request_line') > -1) {
+                        yamlator.digestYamlArchived(process.argv[2]+dir+"/"+file, function (d) {
+                            if (d !== 0) {
+                                http_invalid_request_lineDigest(d);
+                            } else {
+                                save2disk(mainArray);
+                            }
+                        });
+                    }
+ 
                     }
                 });                    
             });
