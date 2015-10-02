@@ -88,7 +88,7 @@ var dnsInjectionResults = function (json) {
     var maxUrl = "", maxTot = 0, maxSuc = 0;
     var minUrl = "", minTot = 0, minSuc = 0;
 
-    json.tcpConnect.domains.forEach(function (d) {
+    json.dnsInjection.domains.forEach(function (d) {
         total += d.totalTests;
         notInjected += d.totalNotInjected;
         if (d.totalTests === d.totalNotInjected)
@@ -111,14 +111,14 @@ var dnsInjectionResults = function (json) {
     });
 
     text += "* Test executed: " + total + "\n";
-    text += "* Test concluded with no injection: " + notInjected + " (" + (notInjected*100/total).toFixed(2) +"%)\n\n\n";
-    text += "* Max percentual of no injection: " + mediaMax.toFixed(2) + "%\n";
+    text += "* Test concluded with injection: " + notInjected + " (" + (notInjected*100/total).toFixed(2) +"%)\n\n\n";
+    text += "* Max percentual of injection: " + mediaMax.toFixed(2) + "%\n";
     text += "\t* Item: " + maxUrl + " - " + maxSuc + " over " + maxTot + "\n";
-    text += "* Min percentual of no injection: " + mediaMin.toFixed(2) + "%\n";
+    text += "* Min percentual of injection: " + mediaMin.toFixed(2) + "%\n";
     text += "\t* Item: " + minUrl + " - " + minSuc + " over " + minTot + "\n";
-    text += "* Median percentual of no injection: " + (media/json.dnsInjection.domains.length).toFixed(2) + "%\n\n\n";
-    text += "* Domains concluded always with no injection: " + alwaysWith + "\n";
-    text += "* Domains concluded always without no injection: " + alwaysWithout + "\n";
+    text += "* Median percentual of injection: " + (media/json.dnsInjection.domains.length).toFixed(2) + "%\n\n\n";
+    text += "* Domains concluded always with injection: " + alwaysWith + "\n";
+    text += "* Domains concluded always without injection: " + alwaysWithout + "\n";
 }
 
 text += "# OONI Report\n";
