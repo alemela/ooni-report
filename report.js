@@ -37,7 +37,8 @@ var tcp_connectDigest = function (data) {
             json.tcpConnect.versions = [];
             json.tcpConnect.domains = [];
         }
-        json.tcpConnect.versions.push(data.test_version);
+        if (!indexOf(json.tcpConnect.versions, data.test_version))
+            json.tcpConnect.versions.push(data.test_version);
 
         var flag = 0;
         for (var i = 0; i < json.tcpConnect.domains.length; i++) {
@@ -101,6 +102,15 @@ var dns_injectionDigest = function (data) {
         fs.writeFileSync(outputFile, JSON.stringify(json, null, 4));
     }
 }
+
+var indexOf = function(array, needle) {
+    for(var i = 0; i < array.length; i++) {
+        if(array[i] === needle) {
+            return 1;
+        }
+    }
+    return 0;
+};
 
 yamlator.searchDir(process.argv[2], function (d) {
     d.forEach(function (dir) {
