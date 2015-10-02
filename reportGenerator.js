@@ -138,7 +138,7 @@ fs.readFile("output/" + cc + "_" + year + "_" + month + ".json", function (err, 
     if (json.dnsInjection !== undefined) {
         pushDescription("dnsInjection");
         dnsInjectionResults(json);
-        text += "*******\n";
+        text += "\n*******\n";
     }
     fs.writeFile("./reports/" + nameReport + ".md", text, function(err) {
         if (err)
