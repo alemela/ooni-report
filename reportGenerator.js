@@ -21,9 +21,15 @@ var testDict = [
 var pushDescription = function (test) {
     text += "### Test: " + test + "\n";
     text += "#### Description\n";
-    text += testDict[0][test].description + "\n";
+    testDict.forEach(function (d) {
+        if (d[test] !== undefined)
+            text += d[test].description + "\n";
+    });
     text += "#### Possible conclusions\n";
-    text += testDict[0][test].conclusions + "\n";
+    testDict.forEach(function (d) {
+        if (d[test] !== undefined)
+            text += d[test].conclusions + "\n";
+    });
     text += "#### Results\n";
 }
 
@@ -71,6 +77,50 @@ var tcpConnectResults = function (json) {
     text += "* Domains concluded always without success: " + alwaysWithout + "\n";
 }
 
+var dnsInjectionResults = function (json) {
+    var total = 0;
+    var notInjected = 0;
+    var media = 0;
+    var mediaMin = 100;
+    var mediaMax = 0;
+    var alwaysWith = 0;
+    var alwaysWithout = 0;
+    var maxUrl = "", maxTot = 0, maxSuc = 0;
+    var minUrl = "", minTot = 0, minSuc = 0;
+
+    json.tcpConnect.domains.forEach(function (d) {
+        total += d.totalTests;
+        notInjected += d.totalNotInjected;
+        if (d.totalTests === d.totalNotInjected)
+            alwaysWith++;
+        if (d.totalNotInjected === 0)
+            alwaysWithout++;
+        media += (d.totalNotInjected*100/d.totalTests)
+        if (d.totalNotInjected*100/d.totalTests > mediaMax) {
+            mediaMax = d.totalNotInjected*100/d.totalTests;
+            maxUrl = d.url;
+            maxTot = d.totalTests;
+            maxSuc = d.totalNotInjected;
+        }
+        if (d.totalNotInjected*100/d.totalTests < mediaMin) {
+            mediaMin = d.totalNotInjected*100/d.totalTests;
+            minUrl = d.url;
+            minTot = d.totalTests;
+            minSuc = d.totalNotInjected;
+        }
+    });
+
+    text += "* Test executed: " + total + "\n";
+    text += "* Test concluded with no injection: " + notInjected + " (" + (notInjected*100/total).toFixed(2) +"%)\n\n\n";
+    text += "* Max percentual of no injection: " + mediaMax.toFixed(2) + "%\n";
+    text += "\t* Item: " + maxUrl + " - " + maxSuc + " over " + maxTot + "\n";
+    text += "* Min percentual of no injection: " + mediaMin.toFixed(2) + "%\n";
+    text += "\t* Item: " + minUrl + " - " + minSuc + " over " + minTot + "\n";
+    text += "* Median percentual of no injection: " + (media/json.dnsInjection.domains.length).toFixed(2) + "%\n\n\n";
+    text += "* Domains concluded always with no injection: " + alwaysWith + "\n";
+    text += "* Domains concluded always without no injection: " + alwaysWithout + "\n";
+}
+
 text += "# OONI Report\n";
 text += "## " + cc + " - " + monthArray[month] + " " + year + "\n";
 text += "*******\n";
@@ -83,6 +133,11 @@ fs.readFile("output/" + cc + "_" + year + "_" + month + ".json", function (err, 
     if (json.tcpConnect !== undefined) {
         pushDescription("tcpConnect");
         tcpConnectResults(json);
+        text += "*******\n";
+    }
+    if (json.dnsInjection !== undefined) {
+        pushDescription("dnsInjection");
+        dnsInjectionResults(json);
         text += "*******\n";
     }
     fs.writeFile("./reports/" + nameReport + ".md", text, function(err) {
