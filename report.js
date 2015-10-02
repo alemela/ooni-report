@@ -7,7 +7,6 @@ var tcp_connectDigest = function (data) {
         var date = yamlator.calcDate(data.start_time);
         var outputFile = 'output/' + data.probe_cc + "_" + date.year + "_" + date.month + ".json";
         var outputFile = 'output/' + data.probe_cc + "_" + date.year + "_" + date.month + ".json";
-//        console.log("Tcp Connect " + data.probe_cc + " " + date.year + " " + date.month);
         if (fs.existsSync(outputFile)) {
             json = JSON.parse(fs.readFileSync(outputFile));
         }
@@ -33,7 +32,11 @@ var tcp_connectDigest = function (data) {
             var obj = {};
             obj.url = data.input;
             obj.totalTests = 1;
+            if (data.connection === "success") {
             obj.totalSucceded = 1;
+            } else {
+            obj.totalSucceded = 0;
+            }
             json.tcpConnect.domains.push(obj);
         }
         fs.writeFileSync(outputFile, JSON.stringify(json, null, 4));
@@ -41,11 +44,10 @@ var tcp_connectDigest = function (data) {
 }
 
 var dns_injectionDigest = function (data) {
-    if (data.record_type === "entry" && data.connection !== undefined) {
+    if (data.record_type === "entry") {
         var json = {};
         var date = yamlator.calcDate(data.start_time);
         var outputFile = 'output/' + data.probe_cc + "_" + date.year + "_" + date.month + ".json";
-        console.log("DNS Injection " + data.probe_cc + " " + date.year + " " + date.month);
         if (fs.existsSync(outputFile)) {
             json = JSON.parse(fs.readFileSync(outputFile));
         }
@@ -57,12 +59,11 @@ var dns_injectionDigest = function (data) {
         json.dnsInjection.versions.push(data.test_version);
 
         var flag = 0;
-        for (var i = 0; i < json.dnsInjction.domains.length; i++) {
+        for (var i = 0; i < json.dnsInjection.domains.length; i++) {
             if (json.dnsInjection.domains[i].url === data.input) {
                 json.dnsInjection.domains[i].totalTests++;
-                if (data.injected === "false")
+                if (data.injected === false)
                     json.dnsInjection.domains[i].totalNonInjected++;
-                console.log("Injected DNS");
                 flag = 1;
                 break;
             }
@@ -72,8 +73,11 @@ var dns_injectionDigest = function (data) {
             var obj = {};
             obj.url = data.input;
             obj.totalTests = 1;
-            obj.totalNonInjected = 1;
-            console.log("Injected DNS");
+            if (data.injected === false) {
+               obj.totalNonInjected = 0;
+            } else {
+               obj.totalNonInjected = 1; 
+            }
             json.dnsInjection.domains.push(obj);
         }
         fs.writeFileSync(outputFile, JSON.stringify(json, null, 4));
