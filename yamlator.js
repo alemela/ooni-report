@@ -66,6 +66,7 @@ var digestYamlArchived = function (path, cb) {
 
             rl.on("close", function (c) {
                 fs.unlinkSync(p);
+                cb(0);
             });
         } catch (e) {
             console.log(e);
