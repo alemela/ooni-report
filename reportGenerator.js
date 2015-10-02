@@ -88,5 +88,6 @@ fs.readFile("output/" + cc + "_" + year + "_" + month + ".json", function (err, 
     fs.writeFile("./reports/" + nameReport + ".md", text, function(err) {
         if (err)
             return console.error(err);
+        console.log("Report created!");
     });
 });
