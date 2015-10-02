@@ -133,7 +133,7 @@ fs.readFile("output/" + cc + "_" + year + "_" + month + ".json", function (err, 
     if (json.tcpConnect !== undefined) {
         pushDescription("tcpConnect");
         tcpConnectResults(json);
-        text += "*******\n";
+        text += "\n*******\n";
     }
     if (json.dnsInjection !== undefined) {
         pushDescription("dnsInjection");
