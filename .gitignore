@@ -1,2 +1,3 @@
-
+*.yml
+output/
 node_modules/*

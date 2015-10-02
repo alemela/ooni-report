@@ -11,6 +11,15 @@ var save2disk = function (obj) {
 }
 
 
+var indexOf = function(array, needle) {
+    for(var i = 0; i < array.length; i++) {
+        if(array[i] === needle) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 var tcp_connectDigest = function (data) {
     if (data.record_type === "entry" && data.connection !== undefined) {
         var json = {};
@@ -55,7 +64,11 @@ var tcp_connectDigest = function (data) {
             var obj = {};
             obj.url = data.input;
             obj.totalTests = 1;
+            if (data.connection === "success") {
             obj.totalSucceded = 1;
+            } else {
+            obj.totalSucceded = 0;
+            }
             json.tcpConnect.domains.push(obj);
         }
 
@@ -67,26 +80,40 @@ var tcp_connectDigest = function (data) {
 }
 
 var dns_injectionDigest = function (data) {
-    if (data.record_type === "entry" && data.connection !== undefined) {
+    if (data.record_type === "entry") {
         var json = {};
+        var kFlag = 1;
         var date = yamlator.calcDate(data.start_time);
-        var outputFile = 'output/' + data.probe_cc + "_" + date.year + "_" + date.month + ".json";
-        if (fs.existsSync(outputFile)) {
-            json = JSON.parse(fs.readFileSync(outputFile));
+        var id = data.probe_cc + "_" + date.year + "_" + date.month;
+ 
+        mainArray.forEach(function (e) {
+            if (e.key === id) {
+                json = e.json;
+                kFlag = 0;
+            }
+        });
+
+        if (kFlag) {
+            var o = {}
+            o.key = id;
+            o.json = {};
+            mainArray.push(o);
         }
+      
         if (json.dnsInjection === undefined) {
             json.dnsInjection = {};
             json.dnsInjection.versions = [];
             json.dnsInjection.domains = [];
         }
-        json.dnsInjection.versions.push(data.test_version);
+        if (!indexOf(json.dnsInjection.versions, data.test_version))
+            json.dnsInjection.versions.push(data.test_version);
 
         var flag = 0;
-        for (var i = 0; i < json.dnsInjction.domains.length; i++) {
+        for (var i = 0; i < json.dnsInjection.domains.length; i++) {
             if (json.dnsInjection.domains[i].url === data.input) {
                 json.dnsInjection.domains[i].totalTests++;
-                if (data.connection === "success")
-                    json.dnsInjection.domains[i].totalSucceded++;
+                if (data.injected === false)
+                    json.dnsInjection.domains[i].totalNonInjected++;
                 flag = 1;
                 break;
             }
@@ -96,21 +123,22 @@ var dns_injectionDigest = function (data) {
             var obj = {};
             obj.url = data.input;
             obj.totalTests = 1;
-            obj.totalSucceded = 1;
+            if (data.injected === false) {
+               obj.totalNonInjected = 0;
+            } else {
+               obj.totalNonInjected = 1; 
+            }
             json.dnsInjection.domains.push(obj);
         }
-        fs.writeFileSync(outputFile, JSON.stringify(json, null, 4));
+        
+        mainArray.forEach(function (e) {
+            if (e.key === id)
+                e.json = json;
+        });
+
     }
 }
 
-var indexOf = function(array, needle) {
-    for(var i = 0; i < array.length; i++) {
-        if(array[i] === needle) {
-            return 1;
-        }
-    }
-    return 0;
-};
 
 yamlator.searchDir(process.argv[2], function (d) {
     d.forEach(function (dir) {
@@ -129,7 +157,11 @@ yamlator.searchDir(process.argv[2], function (d) {
                     }
                     if (file.indexOf('dns_injection') > -1) {
                         yamlator.digestYamlArchived(process.argv[2]+dir+"/"+file, function (d) {
-                            //dns_injectionDigest(d);
+                            if (d !== 0) {
+                                dns_injectionDigest(d);
+                            } else {
+                                save2disk(mainArray);
+                            }
                         });
                     }
                 });                    
